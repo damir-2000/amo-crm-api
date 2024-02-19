@@ -1,0 +1,22 @@
+#python
+virt
+venv*
+.vscode
+.idea
+.mypy_cache
+
+#database
+
+#cache
+__pycache__/
+*.pyc
+
+#folder
+tokens
+
+
+
+# logs
+logs
+/logs
+*.log

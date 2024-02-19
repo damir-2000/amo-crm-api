@@ -1,0 +1,268 @@
+import inspect
+from abc import ABC, abstractmethod
+from datetime import date, datetime, time, timedelta, timezone
+from functools import cached_property
+from typing import List, Optional, Union
+
+from pydantic import BaseModel, field_serializer
+
+from .common import CustomFieldsValue, Value
+
+t_zone = timezone(offset=timedelta(hours=5))
+
+
+class CustomFieldType(ABC):
+    valid_type: List[str] = []
+
+    def __init__(
+        self, field_id: Optional[int] = None, field_code: Optional[str] = None
+    ) -> None:
+        self.field_id = field_id
+        self.field_code = field_code
+        if (
+            field_id
+            and field_code
+            or (field_id and not isinstance(field_id, int))
+            or (field_code and not isinstance(field_code, str))
+        ):
+            raise ValueError
+
+    @abstractmethod
+    def on_get(self, values):
+        raise NotImplementedError
+
+    @abstractmethod
+    def on_set(self, values):
+        raise NotImplementedError
+
+
+class TextField(CustomFieldType):
+    """return -> str"""
+
+    valid_type = ["text", "textarea"]
+
+    def on_get(self, values: Optional[List[Value]]) -> Optional[str]:
+        if values:
+            return str(values[0].value)
+        return None
+
+    def on_set(self, values: str) -> CustomFieldsValue:
+        return CustomFieldsValue(
+            field_id=self.field_id,
+            field_code=self.field_code,
+            values=[Value(value=values)],
+        )
+
+
+class URLField(TextField):
+    valid_type = ["url"]
+
+
+class AddressField(TextField):
+    valid_type = ["streetaddress"]
+
+
+class CheckboxField(CustomFieldType):
+    """return -> bool"""
+
+    valid_type = ["checkbox"]
+
+    def on_get(self, values: Optional[List[Value]]) -> Optional[bool]:
+        if values:
+            return bool(values[0].value)
+        return None
+
+    def on_set(self, values: bool) -> CustomFieldsValue:
+        return CustomFieldsValue(
+            field_id=self.field_id,
+            field_code=self.field_code,
+            values=[Value(value=values)],
+        )
+
+
+class SelectField(CustomFieldType):
+    """return -> Value"""
+
+    valid_type = ["select"]
+
+    def on_get(self, values: Optional[List[Value]]) -> Optional[Value]:
+        if values:
+            return values[0]
+        return None
+
+    def on_set(self, values: Value) -> CustomFieldsValue:
+        return CustomFieldsValue(
+            field_id=self.field_id, field_code=self.field_code, values=[values]
+        )
+
+
+class RadioButtonField(SelectField):
+    valid_type = ["radiobutton"]
+
+
+class MultiSelectField(CustomFieldType):
+    """return -> Value"""
+
+    valid_type = ["multiselect"]
+
+    def on_get(self, values: Optional[List[Value]]) -> Optional[List[Value]]:
+        if values:
+            return values
+        return None
+
+    def on_set(self, values: List[Value]) -> CustomFieldsValue:
+        return CustomFieldsValue(
+            field_id=self.field_id, field_code=self.field_code, values=values
+        )
+
+
+class MultiTextField(MultiSelectField):
+    valid_type = ["multitext"]
+
+
+class NumericField(CustomFieldType):
+    """return -> Float"""
+
+    valid_type = ["numeric"]
+
+    def on_get(self, values: Optional[List[Value]]) -> Optional[float]:
+        if values:
+            value = values[0].value
+            if isinstance(value, str):
+                return float(value)
+        return None
+
+    def on_set(self, values: float) -> CustomFieldsValue:
+        return CustomFieldsValue(
+            field_id=self.field_id,
+            field_code=self.field_code,
+            values=[Value(value=str(values))],
+        )
+
+
+class DateField(CustomFieldType):
+    """return -> Date"""
+
+    valid_type = ["date", "date_time", "birthday"]
+
+    def on_get(self, values: Optional[List[Value]]) -> Optional[date]:
+        if values:
+            value = values[0].value
+            if isinstance(value, int):
+                return datetime.fromtimestamp(value, tz=t_zone).date()
+            if isinstance(value, str):
+                return datetime.strptime(value, "%d.%m.%Y").date()
+        return None
+
+    def on_set(self, values: date) -> CustomFieldsValue:
+        return CustomFieldsValue(
+            field_id=self.field_id,
+            field_code=self.field_code,
+            values=[
+                Value(
+                    value=int(
+                        datetime.combine(date=values, time=time(0, 0, 0, 0)).timestamp()
+                    )
+                )
+            ],
+        )
+
+
+class DateTimeField(CustomFieldType):
+    """return -> Datetime"""
+
+    valid_type = ["date_time"]
+
+    def on_get(self, values: Optional[List[Value]]) -> Optional[date]:
+        if values:
+            value = values[0].value
+            if isinstance(value, int):
+                return datetime.fromtimestamp(value, tz=t_zone)
+
+        return None
+
+    def on_set(self, values: datetime) -> CustomFieldsValue:
+        return CustomFieldsValue(
+            field_id=self.field_id,
+            field_code=self.field_code,
+            values=[Value(value=int(values.timestamp()))],
+        )
+
+
+class BaseModelForFields(BaseModel):
+    custom_fields_values: List[CustomFieldsValue] = []
+
+    @cached_property
+    def _all_annotations(self) -> dict:
+        all_annotations = {}
+        for parent_cls in reversed(self.__class__.__mro__):
+            all_annotations.update(inspect.get_annotations(parent_cls))
+        return all_annotations
+
+    @cached_property
+    def _custom_fields_type(self) -> dict:
+        field_types = {}
+
+        for key, field_type in self._all_annotations.items():
+            if hasattr(field_type, "__metadata__"):
+                for metadata in field_type.__metadata__:
+                    if isinstance(metadata, CustomFieldType):
+                        field_types[key] = metadata
+                        continue
+
+        return field_types
+
+    def model_post_init(self, __context) -> None:
+        if self.custom_fields_values and len(self.custom_fields_values) > 0:
+            custom_fields: dict[Union[str, int], CustomFieldsValue] = {}
+            for custom_field in self.custom_fields_values:
+                if custom_field.field_id:
+                    custom_fields[custom_field.field_id] = custom_field
+                if custom_field.field_code:
+                    custom_fields[custom_field.field_code] = custom_field
+
+            for key, custom_types in self._custom_fields_type.items():
+                if custom_types.field_id:
+                    field = custom_fields.get(custom_types.field_id)
+                elif custom_types.field_code:
+                    field = custom_fields.get(custom_types.field_code)
+
+                if field:
+                    if (
+                        field.field_type
+                        and field.field_type not in custom_types.valid_type
+                    ):
+                        raise TypeError
+                    value = custom_types.on_get(values=field.values)
+
+                self.__setattr__(key, value)
+
+    @field_serializer("custom_fields_values")
+    def serialize_courses_in_order(
+        self, custom_fields_values: Optional[List[CustomFieldsValue]]
+    ):
+        if custom_fields_values is None:
+            custom_fields_values = []
+
+        new_custom_fields_values = []
+        field_ids: List[Union[int, str]] = []
+
+        for key, custom_types in self._custom_fields_type.items():
+            values = self.__getattribute__(key)
+            if custom_types.field_id is not None:
+                field_ids.append(custom_types.field_id)
+            if custom_types.field_code is not None:
+                field_ids.append(custom_types.field_code)
+
+            if values:
+                field_with_value = custom_types.on_set(values=values)
+                new_custom_fields_values.append(field_with_value)
+
+        for custom_field in custom_fields_values:
+            if (
+                custom_field.field_id not in field_ids
+                and custom_field.field_code not in field_ids
+            ):
+                new_custom_fields_values.append(custom_field)
+
+        return new_custom_fields_values
