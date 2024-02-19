@@ -6,7 +6,7 @@ with open("README.md", "r") as readme_file:
 requirements = ["pydantic>==2.6.0", "PyJWT>==2.8.0", "requests>==2.31.0"]
 
 setup(
-    name="amo_crm_api",
+    name="amo-crm-api",
     version="0.1.0",
     author="damir-2000",
     author_email="gilemhonov.damir@gmail.com",
