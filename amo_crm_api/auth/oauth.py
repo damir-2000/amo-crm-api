@@ -20,9 +20,9 @@ class AmoCRMAuth(BaseAuth):
         client_id: str,
         client_secret: str,
         redirect_url: str,
-        storage: BaseTokenStorage = FileTokenStorage(),
+        storage: Optional[BaseTokenStorage] = None,
     ) -> None:
-        self._storage = storage
+        self._storage = storage if storage else FileTokenStorage()
         self._client_id = client_id
         self._client_secret = client_secret
         self._redirect_url = redirect_url
