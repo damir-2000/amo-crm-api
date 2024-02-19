@@ -14,7 +14,7 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     url="https://github.com/damir-2000/amo_crm_api",
-    packages=["amo_crm_api"],
+    packages=find_packages("./amo_crm_api"),
     install_requires=requirements,
     license="MIT",
     python_requires=">=3.11",
