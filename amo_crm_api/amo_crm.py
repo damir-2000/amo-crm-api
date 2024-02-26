@@ -10,6 +10,7 @@ from .schemes import (
     Pipeline,
     Status,
     UpdateResponse,
+    User
 )
 
 LeadType = TypeVar("LeadType", bound=Lead)
@@ -117,6 +118,15 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
             object_type=CustomField, path="/leads/custom_fields"
         )
 
+    def get_user(self, user_id) -> User:
+        response = self.request(method="GET", path=f"/users/{user_id}")
+        return User.model_validate_json(response.content)
+
+    def get_users(self) -> Iterable[User]:
+        return self._objects_list_generator(
+            object_type=User, path="/users"
+        )
+
     @cached_property
     def _lead_model(self) -> type[LeadType]:
         args = get_args(self.__orig_class__)  # type: ignore
@@ -136,7 +146,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         return base_type
 
     def _objects_list_generator(
-        self, object_type: type, path: str, params: Optional[dict] = None, limit=50
+        self, object_type: type, path: str, params: Optional[dict] = None, limit=250
     ) -> Iterable[Any]:
         params = params if params else {}
         params["limit"] = params.get("limit", limit)
