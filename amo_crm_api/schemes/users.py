@@ -61,8 +61,8 @@ class Rights(BaseModel):
     is_admin: bool
     is_free: bool
     is_active: bool
-    group_id: Any
-    role_id: Any
+    group_id: int
+    role_id: int
 
 
 class User(BaseModel):
