@@ -1,6 +1,6 @@
-from .common import ListModel, UpdateResponse
-from .contacts import Contact
-from .custom_fields import CustomField
-from .leads import Lead
-from .pipelines import Pipeline, Status
-from .users import User
+from .common import ListModelScheme, UpdateResponseScheme
+from .contacts import ContactScheme
+from .custom_fields import CustomFieldScheme
+from .leads import LeadScheme
+from .pipelines import PipelineScheme, StatusScheme
+from .users import UserScheme
