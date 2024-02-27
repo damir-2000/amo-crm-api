@@ -26,7 +26,7 @@ class LeadEmbeddedScheme(BaseModel):
     contacts: List[LeadContactScheme]
 
 
-class Lead(BaseModelForFieldsScheme):
+class LeadScheme(BaseModelForFieldsScheme):
     id: Optional[int] = None
     name: Optional[str] = None
     price: Optional[int] = None
