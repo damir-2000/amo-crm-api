@@ -3,7 +3,7 @@ from typing import Any, List, Optional
 from pydantic import BaseModel
 
 
-class Leads(BaseModel):
+class LeadsScheme(BaseModel):
     view: str
     edit: str
     add: str
@@ -11,7 +11,7 @@ class Leads(BaseModel):
     export: str
 
 
-class Contacts(BaseModel):
+class ContactsScheme(BaseModel):
     view: str
     edit: str
     add: str
@@ -19,7 +19,7 @@ class Contacts(BaseModel):
     export: str
 
 
-class Companies(BaseModel):
+class CompaniesScheme(BaseModel):
     view: str
     edit: str
     add: str
@@ -27,33 +27,33 @@ class Companies(BaseModel):
     export: str
 
 
-class Tasks(BaseModel):
+class TasksScheme(BaseModel):
     edit: str
     delete: str
 
 
-class StatusRightActions(BaseModel):
+class StatusRightActionsScheme(BaseModel):
     view: str
     edit: str
     delete: str
 
 
-class StatusRight(BaseModel):
+class StatusRightScheme(BaseModel):
     entity_type: str
     pipeline_id: int
     status_id: int
-    rights: StatusRightActions
+    rights: StatusRightActionsScheme
 
 
-class Rights(BaseModel):
-    leads: Leads
-    contacts: Contacts
-    companies: Companies
-    tasks: Tasks
+class RightsScheme(BaseModel):
+    leads: LeadsScheme
+    contacts: ContactsScheme
+    companies: CompaniesScheme
+    tasks: TasksScheme
     mail_access: bool
     catalog_access: bool
     files_access: bool
-    status_rights: List[StatusRight]
+    status_rights: List[StatusRightScheme]
     catalog_rights: Any
     custom_fields_rights: Any
     oper_day_reports_view_access: bool
@@ -65,9 +65,9 @@ class Rights(BaseModel):
     role_id: int
 
 
-class User(BaseModel):
+class UserScheme(BaseModel):
     id: int
     name: str
     email: str
     lang: str
-    rights: Rights
+    rights: RightsScheme

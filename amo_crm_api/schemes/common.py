@@ -4,7 +4,7 @@ from typing import Annotated, Generic, List, Optional, TypeVar, Union
 from pydantic import AliasChoices, BaseModel, BeforeValidator, Field
 
 
-class ValueItem(BaseModel):
+class ValueItemScheme(BaseModel):
     file_uuid: str
     version_uuid: str
     file_name: str
@@ -12,14 +12,14 @@ class ValueItem(BaseModel):
     is_deleted: bool
 
 
-class Value(BaseModel):
-    value: Union[Union[bool, int, float, str], ValueItem]
+class ValueScheme(BaseModel):
+    value: Union[Union[bool, int, float, str], ValueItemScheme]
     subtype: Optional[str] = None
     enum_id: Optional[int] = None
     enum_code: Optional[Optional[str]] = None
 
 
-class CustomFieldsValue(BaseModel):
+class CustomFieldsValueScheme(BaseModel):
     field_id: Annotated[
         Optional[int], Field(validation_alias=AliasChoices("id", "field_id"))
     ] = None
@@ -31,14 +31,14 @@ class CustomFieldsValue(BaseModel):
     ] = None
     field_type: Optional[str] = None
     values: Annotated[
-        Union[Value, List[Value]],
+        Union[ValueScheme, List[ValueScheme]],
         BeforeValidator(
             lambda x: [
-                Value(**i)
+                ValueScheme(**i)
                 if isinstance(i, dict)
                 else i
-                if isinstance(i, Value)
-                else Value(value=i)
+                if isinstance(i, ValueScheme)
+                else ValueScheme(value=i)
                 for i in x
             ]
             if isinstance(x, list)
@@ -50,7 +50,7 @@ class CustomFieldsValue(BaseModel):
 K = TypeVar("K")
 
 
-class Embedded(BaseModel, Generic[K]):
+class EmbeddedScheme(BaseModel, Generic[K]):
     objects: Annotated[
         List[K],
         Field(
@@ -61,11 +61,11 @@ class Embedded(BaseModel, Generic[K]):
     ] = []
 
 
-class ListModel(BaseModel, Generic[K]):
+class ListModelScheme(BaseModel, Generic[K]):
     page: Annotated[Optional[int], Field(alias="_page")] = None
-    embedded: Annotated[Embedded[K], Field(alias="_embedded")]
+    embedded: Annotated[EmbeddedScheme[K], Field(alias="_embedded")]
 
 
-class UpdateResponse(BaseModel):
+class UpdateResponseScheme(BaseModel):
     id: int
     updated_at: datetime

@@ -3,19 +3,19 @@ from typing import Any, List, Optional
 from pydantic import BaseModel
 
 
-class Enum(BaseModel):
+class EnumScheme(BaseModel):
     id: int
     value: str
     sort: int
     code: Optional[str] = None
 
 
-class RequiredStatus(BaseModel):
+class RequiredStatusScheme(BaseModel):
     pipeline_id: int
     status_id: int
 
 
-class CustomField(BaseModel):
+class CustomFieldScheme(BaseModel):
     id: int
     name: str
     type: str
@@ -23,9 +23,9 @@ class CustomField(BaseModel):
     code: Optional[str]
     sort: int
     is_api_only: bool
-    enums: Optional[List[Enum]]
+    enums: Optional[List[EnumScheme]]
     group_id: Optional[str]
-    required_statuses: List[RequiredStatus]
+    required_statuses: List[RequiredStatusScheme]
     is_deletable: bool
     is_predefined: bool
     entity_type: str

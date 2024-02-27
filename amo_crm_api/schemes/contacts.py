@@ -5,21 +5,21 @@ from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
 from ..utils import set_tz
 
-from .base_model import BaseModelForFields, MultiTextField
-from .common import CustomFieldsValue, Value
+from .base_model import BaseModelForFieldsScheme, MultiTextField
+from .common import CustomFieldsValueScheme, ValueScheme
 
 
-class ContactLead(BaseModel):
+class ContactLeadScheme(BaseModel):
     id: int
 
 
-class ContactEmbedded(BaseModel):
+class ContactEmbeddedScheme(BaseModel):
     tags: List
-    leads: List[ContactLead]
+    leads: List[ContactLeadScheme]
     companies: List
 
 
-class Contact(BaseModelForFields):
+class ContactScheme(BaseModelForFieldsScheme):
     id: Optional[int] = None
     name: Optional[str] = None
     first_name: Optional[str] = None
@@ -49,21 +49,21 @@ class Contact(BaseModelForFields):
     is_deleted: Optional[bool] = None
     is_unsorted: Optional[bool] = None
     custom_fields_values: Annotated[
-        List[CustomFieldsValue],
+        List[CustomFieldsValueScheme],
         Field(validation_alias=AliasChoices("custom_fields", "custom_fields_values")),
     ] = []
     account_id: Optional[int] = None
-    embedded: Annotated[Optional[ContactEmbedded], Field(alias="_embedded")] = None
+    embedded: Annotated[Optional[ContactEmbeddedScheme], Field(alias="_embedded")] = None
     leads: Annotated[
-        List[ContactLead],
+        List[ContactLeadScheme],
         Field(validation_alias=AliasChoices("leads", "linked_leads_id")),
     ] = []
 
     phone: Annotated[
-        List[Value], MultiTextField(field_code="PHONE"), Field(exclude=True)
+        List[ValueScheme], MultiTextField(field_code="PHONE"), Field(exclude=True)
     ] = []
     email: Annotated[
-        List[Value], MultiTextField(field_code="EMAIL"), Field(exclude=True)
+        List[ValueScheme], MultiTextField(field_code="EMAIL"), Field(exclude=True)
     ] = []
 
     def model_post_init(self, __context) -> None:

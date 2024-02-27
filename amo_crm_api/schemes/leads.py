@@ -5,28 +5,28 @@ from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
 from ..utils import set_tz
 
-from .base_model import BaseModelForFields
-from .common import CustomFieldsValue
+from .base_model import BaseModelForFieldsScheme
+from .common import CustomFieldsValueScheme
 
 
-class LeadContact(BaseModel):
+class LeadContactScheme(BaseModel):
     id: int
     is_main: bool
 
 
-class LeadTag(BaseModel):
+class LeadTagScheme(BaseModel):
     id: int
     name: str
     color: Optional[str] = None
 
 
-class LeadEmbedded(BaseModel):
-    tags: List[LeadTag]
+class LeadEmbeddedScheme(BaseModel):
+    tags: List[LeadTagScheme]
     companies: List
-    contacts: List[LeadContact]
+    contacts: List[LeadContactScheme]
 
 
-class Lead(BaseModelForFields):
+class Lead(BaseModelForFieldsScheme):
     id: Optional[int] = None
     name: Optional[str] = None
     price: Optional[int] = None
@@ -63,14 +63,14 @@ class Lead(BaseModelForFields):
     ] = None
     is_deleted: Optional[bool] = None
     custom_fields_values: Annotated[
-        List[CustomFieldsValue],
+        List[CustomFieldsValueScheme],
         Field(validation_alias=AliasChoices("custom_fields", "custom_fields_values")),
     ] = []
     score: Optional[float] = None
     account_id: Optional[int] = None
     labor_cost: Optional[float] = None
-    embedded: Annotated[Optional[LeadEmbedded], Field(alias="_embedded")] = None
-    contacts: Annotated[List[LeadContact], Field(exclude=True)] = []
+    embedded: Annotated[Optional[LeadEmbeddedScheme], Field(alias="_embedded")] = None
+    contacts: Annotated[List[LeadContactScheme], Field(exclude=True)] = []
 
     def model_post_init(self, __context) -> None:
         if self.embedded and self.embedded.contacts:

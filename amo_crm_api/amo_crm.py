@@ -3,18 +3,18 @@ from typing import Any, Generic, Iterable, List, Optional, Type, TypeVar, get_ar
 
 from .auth import BaseAuth
 from .schemes import (
-    Contact,
-    CustomField,
-    Lead,
-    ListModel,
-    Pipeline,
-    Status,
-    UpdateResponse,
-    User
+    ContactScheme,
+    CustomFieldScheme,
+    LeadScheme,
+    ListModelScheme,
+    PipelineScheme,
+    StatusScheme,
+    UpdateResponseScheme,
+    UserScheme
 )
 
-LeadType = TypeVar("LeadType", bound=Lead)
-ContactType = TypeVar("ContactType", bound=Contact)
+LeadType = TypeVar("LeadType", bound=LeadScheme)
+ContactType = TypeVar("ContactType", bound=ContactScheme)
 
 
 class AmoCRMApi(Generic[LeadType, ContactType]):
@@ -45,14 +45,14 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
     # def create_complex_lead(self, lead: LeadType) -> LeadType:
     #     ...
 
-    def update_lead(self, lead: LeadType) -> UpdateResponse:
+    def update_lead(self, lead: LeadType) -> UpdateResponseScheme:
         lead_id = lead.id
         response = self.request(
             method="PATCH",
             path=f"/leads/{lead_id}",
             json=lead.model_dump(exclude_none=True),
         )
-        return UpdateResponse.model_validate_json(json_data=response.content)
+        return UpdateResponseScheme.model_validate_json(json_data=response.content)
 
     def get_contact(self, contact_id: int) -> ContactType:
         response = self.request(
@@ -75,62 +75,62 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return response.content
 
-    def update_contact(self, contact: ContactType) -> UpdateResponse:
+    def update_contact(self, contact: ContactType) -> UpdateResponseScheme:
         contact_id = contact.id
         response = self.request(
             method="PATCH",
             path=f"/contacts/{contact_id}",
             json=contact.model_dump(exclude_none=True),
         )
-        return UpdateResponse.model_validate_json(json_data=response.content)
+        return UpdateResponseScheme.model_validate_json(json_data=response.content)
 
-    def get_pipeline(self, pipeline_id: int) -> Pipeline:
+    def get_pipeline(self, pipeline_id: int) -> PipelineScheme:
         response = self.request(method="GET", path=f"/leads/pipelines/{pipeline_id}")
-        return Pipeline.model_validate_json(response.content)
+        return PipelineScheme.model_validate_json(response.content)
 
-    def get_pipeline_list(self) -> List[Pipeline]:
+    def get_pipeline_list(self) -> List[PipelineScheme]:
         response = self.request(method="GET", path="/leads/pipelines")
         return (
-            ListModel[Pipeline]
+            ListModelScheme[PipelineScheme]
             .model_validate_json(json_data=response.content)
             .embedded.objects
         )
 
-    def get_pipeline_status(self, pipeline_id: int, status_id: int) -> Status:
+    def get_pipeline_status(self, pipeline_id: int, status_id: int) -> StatusScheme:
         response = self.request(
             method="GET", path=f"/leads/pipelines/{pipeline_id}/statuses/{status_id}"
         )
-        return Status.model_validate_json(response.content)
+        return StatusScheme.model_validate_json(response.content)
 
     def get_pipeline_status_list(self, pipeline_id: int) -> List[Status]:
         response = self.request(
             method="GET", path=f"/leads/pipelines/{pipeline_id}/statuses"
         )
-        return ListModel[Status].model_validate_json(response.content).embedded.objects
+        return ListModelScheme[StatusScheme].model_validate_json(response.content).embedded.objects
 
-    def get_custom_field(self, field_id: int) -> CustomField:
+    def get_custom_field(self, field_id: int) -> CustomFieldScheme:
         response = self.request(method="GET", path=f"/leads/custom_fields/{field_id}")
-        return CustomField.model_validate_json(response.content)
+        return CustomFieldScheme.model_validate_json(response.content)
 
-    def get_custom_field_list(self) -> Iterable[CustomField]:
+    def get_custom_field_list(self) -> Iterable[CustomFieldScheme]:
         # params = {"limit": 2, "page": 1}
         return self._objects_list_generator(
-            object_type=CustomField, path="/leads/custom_fields"
+            object_type=CustomFieldScheme, path="/leads/custom_fields"
         )
 
-    def get_user(self, user_id) -> User:
+    def get_user(self, user_id) -> UserScheme:
         response = self.request(method="GET", path=f"/users/{user_id}")
-        return User.model_validate_json(response.content)
+        return UserScheme.model_validate_json(response.content)
 
-    def get_users(self) -> Iterable[User]:
+    def get_users(self) -> Iterable[UserScheme]:
         return self._objects_list_generator(
-            object_type=User, path="/users"
+            object_type=UserScheme, path="/users"
         )
 
     @cached_property
     def _lead_model(self) -> type[LeadType]:
         args = get_args(self.__orig_class__)  # type: ignore
-        base_type: type[LeadType] = Lead  # type: ignore
+        base_type: type[LeadType] = LeadScheme  # type: ignore
         for arg in args:
             if issubclass(arg, base_type):
                 return arg
@@ -139,7 +139,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
     @cached_property
     def _contact_model(self) -> Type[ContactType]:
         args = get_args(self.__orig_class__)  # type: ignore
-        base_type: Type[ContactType] = Contact  # type: ignore
+        base_type: Type[ContactType] = ContactScheme  # type: ignore
         for arg in args:
             if issubclass(arg, base_type):
                 return arg
@@ -158,7 +158,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
             if response.status_code != 200:
                 break
             item_list = (
-                ListModel[object_type]  # type: ignore
+                ListModelScheme[object_type]  # type: ignore
                 .model_validate_json(response.content)
                 .embedded.objects
             )

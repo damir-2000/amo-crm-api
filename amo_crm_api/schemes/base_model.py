@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel, field_serializer
 
-from .common import CustomFieldsValue, Value
+from .common import CustomFieldsValueScheme, ValueScheme
 
 t_zone = timezone(offset=timedelta(hours=5))
 
@@ -41,16 +41,16 @@ class TextField(CustomFieldType):
 
     valid_type = ["text", "textarea"]
 
-    def on_get(self, values: Optional[List[Value]]) -> Optional[str]:
+    def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[str]:
         if values:
             return str(values[0].value)
         return None
 
-    def on_set(self, values: str) -> CustomFieldsValue:
-        return CustomFieldsValue(
+    def on_set(self, values: str) -> CustomFieldsValueScheme:
+        return CustomFieldsValueScheme(
             field_id=self.field_id,
             field_code=self.field_code,
-            values=[Value(value=values)],
+            values=[ValueScheme(value=values)],
         )
 
 
@@ -67,16 +67,16 @@ class CheckboxField(CustomFieldType):
 
     valid_type = ["checkbox"]
 
-    def on_get(self, values: Optional[List[Value]]) -> Optional[bool]:
+    def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[bool]:
         if values:
             return bool(values[0].value)
         return None
 
-    def on_set(self, values: bool) -> CustomFieldsValue:
-        return CustomFieldsValue(
+    def on_set(self, values: bool) -> CustomFieldsValueScheme:
+        return CustomFieldsValueScheme(
             field_id=self.field_id,
             field_code=self.field_code,
-            values=[Value(value=values)],
+            values=[ValueScheme(value=values)],
         )
 
 
@@ -85,13 +85,13 @@ class SelectField(CustomFieldType):
 
     valid_type = ["select"]
 
-    def on_get(self, values: Optional[List[Value]]) -> Optional[Value]:
+    def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[ValueScheme]:
         if values:
             return values[0]
         return None
 
-    def on_set(self, values: Value) -> CustomFieldsValue:
-        return CustomFieldsValue(
+    def on_set(self, values: ValueScheme) -> CustomFieldsValueScheme:
+        return CustomFieldsValueScheme(
             field_id=self.field_id, field_code=self.field_code, values=[values]
         )
 
@@ -105,13 +105,13 @@ class MultiSelectField(CustomFieldType):
 
     valid_type = ["multiselect"]
 
-    def on_get(self, values: Optional[List[Value]]) -> Optional[List[Value]]:
+    def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[List[ValueScheme]]:
         if values:
             return values
         return None
 
-    def on_set(self, values: List[Value]) -> CustomFieldsValue:
-        return CustomFieldsValue(
+    def on_set(self, values: List[ValueScheme]) -> CustomFieldsValueScheme:
+        return CustomFieldsValueScheme(
             field_id=self.field_id, field_code=self.field_code, values=values
         )
 
@@ -125,18 +125,18 @@ class NumericField(CustomFieldType):
 
     valid_type = ["numeric"]
 
-    def on_get(self, values: Optional[List[Value]]) -> Optional[float]:
+    def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[float]:
         if values:
             value = values[0].value
             if isinstance(value, str):
                 return float(value)
         return None
 
-    def on_set(self, values: float) -> CustomFieldsValue:
-        return CustomFieldsValue(
+    def on_set(self, values: float) -> CustomFieldsValueScheme:
+        return CustomFieldsValueScheme(
             field_id=self.field_id,
             field_code=self.field_code,
-            values=[Value(value=str(values))],
+            values=[ValueScheme(value=str(values))],
         )
 
 
@@ -145,7 +145,7 @@ class DateField(CustomFieldType):
 
     valid_type = ["date", "date_time", "birthday"]
 
-    def on_get(self, values: Optional[List[Value]]) -> Optional[date]:
+    def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[date]:
         if values:
             value = values[0].value
             if isinstance(value, int):
@@ -154,12 +154,12 @@ class DateField(CustomFieldType):
                 return datetime.strptime(value, "%d.%m.%Y").date()
         return None
 
-    def on_set(self, values: date) -> CustomFieldsValue:
-        return CustomFieldsValue(
+    def on_set(self, values: date) -> CustomFieldsValueScheme:
+        return CustomFieldsValueScheme(
             field_id=self.field_id,
             field_code=self.field_code,
             values=[
-                Value(
+                ValueScheme(
                     value=int(
                         datetime.combine(date=values, time=time(0, 0, 0, 0)).timestamp()
                     )
@@ -173,7 +173,7 @@ class DateTimeField(CustomFieldType):
 
     valid_type = ["date_time"]
 
-    def on_get(self, values: Optional[List[Value]]) -> Optional[date]:
+    def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[date]:
         if values:
             value = values[0].value
             if isinstance(value, int):
@@ -181,16 +181,16 @@ class DateTimeField(CustomFieldType):
 
         return None
 
-    def on_set(self, values: datetime) -> CustomFieldsValue:
-        return CustomFieldsValue(
+    def on_set(self, values: datetime) -> CustomFieldsValueScheme:
+        return CustomFieldsValueScheme(
             field_id=self.field_id,
             field_code=self.field_code,
-            values=[Value(value=int(values.timestamp()))],
+            values=[ValueScheme(value=int(values.timestamp()))],
         )
 
 
-class BaseModelForFields(BaseModel):
-    custom_fields_values: List[CustomFieldsValue] = []
+class BaseModelForFieldsScheme(BaseModel):
+    custom_fields_values: List[CustomFieldsValueScheme] = []
 
     @cached_property
     def _all_annotations(self) -> dict:
@@ -214,7 +214,7 @@ class BaseModelForFields(BaseModel):
 
     def model_post_init(self, __context) -> None:
         if self.custom_fields_values and len(self.custom_fields_values) > 0:
-            custom_fields: dict[Union[str, int], CustomFieldsValue] = {}
+            custom_fields: dict[Union[str, int], CustomFieldsValueScheme] = {}
             for custom_field in self.custom_fields_values:
                 if custom_field.field_id:
                     custom_fields[custom_field.field_id] = custom_field
@@ -239,7 +239,7 @@ class BaseModelForFields(BaseModel):
 
     @field_serializer("custom_fields_values")
     def serialize_courses_in_order(
-        self, custom_fields_values: Optional[List[CustomFieldsValue]]
+        self, custom_fields_values: Optional[List[CustomFieldsValueScheme]]
     ):
         if custom_fields_values is None:
             custom_fields_values = []
