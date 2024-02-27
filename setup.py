@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as readme_file:
     readme = readme_file.read()
 
-requirements = ["pydantic>==2.6.0", "PyJWT>==2.8.0", "requests>==2.31.0"]
+requirements = ["pydantic>=2.6.0", "PyJWT>=2.8.0", "requests>=2.31.0"]
 
 setup(
     name="amo_crm_api",
