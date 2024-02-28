@@ -105,7 +105,9 @@ class MultiSelectField(CustomFieldType):
 
     valid_type = ["multiselect"]
 
-    def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[List[ValueScheme]]:
+    def on_get(
+        self, values: Optional[List[ValueScheme]]
+    ) -> Optional[List[ValueScheme]]:
         if values:
             return values
         return None

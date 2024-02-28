@@ -1,4 +1,3 @@
-
-from .auth import AmoCRMAuth, AmoCRMTokenAuth, storage
+from . import schemes, utils
 from .amo_crm import AmoCRMApi
-from . import utils, schemes
+from .auth import AmoCRMAuth, AmoCRMTokenAuth, storage

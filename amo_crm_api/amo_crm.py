@@ -10,7 +10,7 @@ from .schemes import (
     PipelineScheme,
     StatusScheme,
     UpdateResponseScheme,
-    UserScheme
+    UserScheme,
 )
 
 LeadType = TypeVar("LeadType", bound=LeadScheme)
@@ -102,11 +102,15 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return StatusScheme.model_validate_json(response.content)
 
-    def get_pipeline_status_list(self, pipeline_id: int) -> List[Status]:
+    def get_pipeline_status_list(self, pipeline_id: int) -> List[StatusScheme]:
         response = self.request(
             method="GET", path=f"/leads/pipelines/{pipeline_id}/statuses"
         )
-        return ListModelScheme[StatusScheme].model_validate_json(response.content).embedded.objects
+        return (
+            ListModelScheme[StatusScheme]
+            .model_validate_json(response.content)
+            .embedded.objects
+        )
 
     def get_custom_field(self, field_id: int) -> CustomFieldScheme:
         response = self.request(method="GET", path=f"/leads/custom_fields/{field_id}")
@@ -123,9 +127,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         return UserScheme.model_validate_json(response.content)
 
     def get_users(self) -> Iterable[UserScheme]:
-        return self._objects_list_generator(
-            object_type=UserScheme, path="/users"
-        )
+        return self._objects_list_generator(object_type=UserScheme, path="/users")
 
     @cached_property
     def _lead_model(self) -> type[LeadType]:

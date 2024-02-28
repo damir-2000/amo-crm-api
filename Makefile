@@ -1,6 +1,6 @@
 VENV_PATH = venv
 VENV = ./venv/Scripts/
-CODE = ./amo-crm-api
+CODE = ./amo_crm_api
 
 setup-dev: create-venv pip-update
 

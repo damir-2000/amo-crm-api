@@ -4,7 +4,6 @@ from typing import Annotated, List, Optional
 from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
 from ..utils import set_tz
-
 from .base_model import BaseModelForFieldsScheme, MultiTextField
 from .common import CustomFieldsValueScheme, ValueScheme
 
@@ -53,7 +52,9 @@ class ContactScheme(BaseModelForFieldsScheme):
         Field(validation_alias=AliasChoices("custom_fields", "custom_fields_values")),
     ] = []
     account_id: Optional[int] = None
-    embedded: Annotated[Optional[ContactEmbeddedScheme], Field(alias="_embedded")] = None
+    embedded: Annotated[
+        Optional[ContactEmbeddedScheme], Field(alias="_embedded")
+    ] = None
     leads: Annotated[
         List[ContactLeadScheme],
         Field(validation_alias=AliasChoices("leads", "linked_leads_id")),
