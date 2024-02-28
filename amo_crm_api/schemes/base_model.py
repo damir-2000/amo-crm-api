@@ -83,11 +83,20 @@ class CheckboxField(CustomFieldType):
 class SelectField(CustomFieldType):
     """return -> Value"""
 
-    valid_type = ["select"]
-
+    valid_type = ["select", "multiselect"]
+    
+    def __init__(self, field_id: int | None = None, field_code: str | None = None, enums: Optional[dict] = None) -> None:
+        self.enums = enums
+        super().__init__(field_id, field_code)
+    
     def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[ValueScheme]:
         if values:
-            return values[0]
+            value = values[0]
+            
+            if self.enums:
+                return self.enums.get(value.enum_id)
+            
+            return value
         return None
 
     def on_set(self, values: ValueScheme) -> CustomFieldsValueScheme:
@@ -236,8 +245,7 @@ class BaseModelForFieldsScheme(BaseModel):
                     ):
                         raise TypeError
                     value = custom_types.on_get(values=field.values)
-
-                self.__setattr__(key, value)
+                    self.__setattr__(key, value)
 
     @field_serializer("custom_fields_values")
     def serialize_courses_in_order(
