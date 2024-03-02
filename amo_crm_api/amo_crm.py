@@ -122,7 +122,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
             object_type=CustomFieldScheme, path="/leads/custom_fields"
         )
 
-    def get_user(self, user_id) -> UserScheme:
+    def get_user(self, user_id: int) -> UserScheme:
         response = self.request(method="GET", path=f"/users/{user_id}")
         return UserScheme.model_validate_json(response.content)
 
