@@ -85,7 +85,7 @@ class SelectField(CustomFieldType):
 
     valid_type = ["select", "multiselect"]
     
-    def __init__(self, field_id: int | None = None, field_code: str | None = None, enums: Optional[dict] = None) -> None:
+    def __init__(self, field_id: Optional[int] = None, field_code: Optional[str] = None, enums: Optional[dict] = None) -> None:
         self.enums = enums
         super().__init__(field_id, field_code)
     
