@@ -203,18 +203,18 @@ class DateTimeField(CustomFieldType):
 class BaseModelForFieldsScheme(BaseModel):
     custom_fields_values: List[CustomFieldsValueScheme] = []
 
-    @cached_property
+    # @cached_property
     def _all_annotations(self) -> dict:
         all_annotations = {}
         for parent_cls in reversed(self.__class__.__mro__):
             all_annotations.update(inspect.get_annotations(parent_cls))
         return all_annotations
 
-    @cached_property
+    # @cached_property
     def _custom_fields_type(self) -> dict:
         field_types = {}
 
-        for key, field_type in self._all_annotations.items():
+        for key, field_type in self._all_annotations().items():
             if hasattr(field_type, "__metadata__"):
                 for metadata in field_type.__metadata__:
                     if isinstance(metadata, CustomFieldType):
@@ -232,7 +232,7 @@ class BaseModelForFieldsScheme(BaseModel):
                 if custom_field.field_code:
                     custom_fields[custom_field.field_code] = custom_field
 
-            for key, custom_types in self._custom_fields_type.items():
+            for key, custom_types in self._custom_fields_type().items():
                 if custom_types.field_id:
                     field = custom_fields.get(custom_types.field_id)
                 elif custom_types.field_code:
@@ -251,13 +251,15 @@ class BaseModelForFieldsScheme(BaseModel):
     def serialize_courses_in_order(
         self, custom_fields_values: Optional[List[CustomFieldsValueScheme]]
     ):
+        
         if custom_fields_values is None:
             custom_fields_values = []
 
         new_custom_fields_values = []
         field_ids: List[Union[int, str]] = []
 
-        for key, custom_types in self._custom_fields_type.items():
+        for key, custom_types in self._custom_fields_type().items():
+            
             values = self.__getattribute__(key)
             if custom_types.field_id is not None:
                 field_ids.append(custom_types.field_id)
@@ -267,7 +269,7 @@ class BaseModelForFieldsScheme(BaseModel):
             if values:
                 field_with_value = custom_types.on_set(values=values)
                 new_custom_fields_values.append(field_with_value)
-
+                
         for custom_field in custom_fields_values:
             if (
                 custom_field.field_id not in field_ids
@@ -276,3 +278,4 @@ class BaseModelForFieldsScheme(BaseModel):
                 new_custom_fields_values.append(custom_field)
 
         return new_custom_fields_values
+

@@ -13,7 +13,7 @@ class ValueItemScheme(BaseModel):
 
 
 class ValueScheme(BaseModel):
-    value: Union[Union[bool, int, float, str], ValueItemScheme]
+    value: Union[Union[bool, int, float, str], ValueItemScheme, None] = None
     subtype: Optional[str] = None
     enum_id: Optional[int] = None
     enum_code: Optional[Optional[str]] = None
@@ -69,3 +69,10 @@ class ListModelScheme(BaseModel, Generic[K]):
 class UpdateResponseScheme(BaseModel):
     id: int
     updated_at: datetime
+
+
+class ComplexCreateResponseScheme(BaseModel):
+    id: Optional[int] = None
+    contact_id: Optional[int] = None
+    company_id: Optional[int] = None
+    merged: Optional[bool] = None
