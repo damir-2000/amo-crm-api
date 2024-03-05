@@ -15,7 +15,7 @@ class ValueItemScheme(BaseModel):
 class ValueScheme(BaseModel):
     value: Union[Union[bool, int, float, str], ValueItemScheme, None] = None
     subtype: Optional[str] = None
-    enum_id: Optional[int] = None
+    enum_id: Annotated[Optional[int], Field(validation_alias=AliasChoices("enum_id", "enum")),] = None
     enum_code: Optional[Optional[str]] = None
 
 
