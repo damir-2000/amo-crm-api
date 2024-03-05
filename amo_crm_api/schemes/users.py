@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 from pydantic import BaseModel
 
@@ -61,8 +61,8 @@ class RightsScheme(BaseModel):
     is_admin: bool
     is_free: bool
     is_active: bool
-    group_id: int
-    role_id: int
+    group_id: Optional[int] = None
+    role_id: Optional[int] = None
 
 
 class UserScheme(BaseModel):
