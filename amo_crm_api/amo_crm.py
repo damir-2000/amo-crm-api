@@ -1,9 +1,11 @@
 from functools import cached_property
 from typing import Any, Generic, Iterable, List, Optional, Type, TypeVar, get_args
+
 from pydantic import TypeAdapter
 
 from .auth import BaseAuth
 from .schemes import (
+    ComplexCreateResponseScheme,
     ContactScheme,
     CustomFieldScheme,
     LeadScheme,
@@ -12,7 +14,6 @@ from .schemes import (
     StatusScheme,
     UpdateResponseScheme,
     UserScheme,
-    ComplexCreateResponseScheme
 )
 
 LeadType = TypeVar("LeadType", bound=LeadScheme)
@@ -44,16 +45,18 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return response.content
 
-    def create_complex_lead(self, lead: LeadType, contact: ContactType) -> ComplexCreateResponseScheme:
+    def create_complex_lead(
+        self, lead: LeadType, contact: ContactType
+    ) -> ComplexCreateResponseScheme:
         lead_data = lead.model_dump(exclude_none=True)
         contact_data = contact.model_dump(exclude_none=True)
         lead_data["_embedded"] = {}
         lead_data["_embedded"]["contacts"] = [contact_data]
-        response = self.request(
-            method="POST", path="/leads/complex", json=[lead_data]
-        )
-        
-        return TypeAdapter(List[ComplexCreateResponseScheme]).validate_json(response.content)[0]
+        response = self.request(method="POST", path="/leads/complex", json=[lead_data])
+
+        return TypeAdapter(List[ComplexCreateResponseScheme]).validate_json(
+            response.content
+        )[0]
 
     def update_lead(self, lead: LeadType) -> UpdateResponseScheme:
         lead_id = lead.id

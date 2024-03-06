@@ -2,7 +2,7 @@ import inspect
 from abc import ABC, abstractmethod
 from datetime import date, datetime, time, timedelta, timezone
 from functools import cached_property
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, field_serializer
 
@@ -84,18 +84,29 @@ class SelectField(CustomFieldType):
     """return -> Value"""
 
     valid_type = ["select", "multiselect"]
-    
-    def __init__(self, field_id: Optional[int] = None, field_code: Optional[str] = None, enums: Optional[dict] = None) -> None:
+
+    def __init__(
+        self,
+        field_id: Optional[int] = None,
+        field_code: Optional[str] = None,
+        enums: Optional[Dict[Any, ValueScheme]] = None,
+    ) -> None:
         self.enums = enums
         super().__init__(field_id, field_code)
-    
-    def on_get(self, values: Optional[List[ValueScheme]]) -> Optional[ValueScheme]:
+
+    def on_get(
+        self, values: Optional[List[ValueScheme]]
+    ) -> Optional[Union[ValueScheme, Any]]:
         if values:
             value = values[0]
-            
+
             if self.enums:
-                return self.enums.get(value.enum_id)
-            
+                for key, enum_value in self.enums.items():
+                    if enum_value.enum_id == value.enum_id or (
+                        not value.enum_id and enum_value.value == value.value
+                    ):
+                        return key
+
             return value
         return None
 
@@ -210,7 +221,7 @@ class BaseModelForFieldsScheme(BaseModel):
             all_annotations.update(inspect.get_annotations(parent_cls))
         return all_annotations
 
-    # @cached_property
+    @cached_property
     def _custom_fields_type(self) -> dict:
         field_types = {}
 
@@ -232,7 +243,7 @@ class BaseModelForFieldsScheme(BaseModel):
                 if custom_field.field_code:
                     custom_fields[custom_field.field_code] = custom_field
 
-            for key, custom_types in self._custom_fields_type().items():
+            for key, custom_types in self._custom_fields_type.items():
                 if custom_types.field_id:
                     field = custom_fields.get(custom_types.field_id)
                 elif custom_types.field_code:
@@ -251,15 +262,13 @@ class BaseModelForFieldsScheme(BaseModel):
     def serialize_courses_in_order(
         self, custom_fields_values: Optional[List[CustomFieldsValueScheme]]
     ):
-        
         if custom_fields_values is None:
             custom_fields_values = []
 
         new_custom_fields_values = []
         field_ids: List[Union[int, str]] = []
 
-        for key, custom_types in self._custom_fields_type().items():
-            
+        for key, custom_types in self._custom_fields_type.items():
             values = self.__getattribute__(key)
             if custom_types.field_id is not None:
                 field_ids.append(custom_types.field_id)
@@ -269,7 +278,7 @@ class BaseModelForFieldsScheme(BaseModel):
             if values:
                 field_with_value = custom_types.on_set(values=values)
                 new_custom_fields_values.append(field_with_value)
-                
+
         for custom_field in custom_fields_values:
             if (
                 custom_field.field_id not in field_ids
@@ -278,4 +287,3 @@ class BaseModelForFieldsScheme(BaseModel):
                 new_custom_fields_values.append(custom_field)
 
         return new_custom_fields_values
-

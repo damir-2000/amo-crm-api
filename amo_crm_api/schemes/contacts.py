@@ -58,7 +58,7 @@ class ContactScheme(BaseModelForFieldsScheme):
     leads: Annotated[
         List[ContactLeadScheme],
         Field(validation_alias=AliasChoices("leads", "linked_leads_id")),
-        Field(exclude=True)
+        Field(exclude=True),
     ] = []
 
     phone: Annotated[

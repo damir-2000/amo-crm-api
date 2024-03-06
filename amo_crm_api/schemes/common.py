@@ -15,8 +15,13 @@ class ValueItemScheme(BaseModel):
 class ValueScheme(BaseModel):
     value: Union[Union[bool, int, float, str], ValueItemScheme, None] = None
     subtype: Optional[str] = None
-    enum_id: Annotated[Optional[int], Field(validation_alias=AliasChoices("enum_id", "enum")),] = None
-    enum_code: Optional[Optional[str]] = None
+    enum_id: Annotated[
+        Optional[int],
+        Field(validation_alias=AliasChoices("enum_id", "enum")),
+    ] = None
+    enum_code: Annotated[
+        Optional[str], Field(validation_alias=AliasChoices("enum_code", "code"))
+    ] = None
 
 
 class CustomFieldsValueScheme(BaseModel):
@@ -31,7 +36,7 @@ class CustomFieldsValueScheme(BaseModel):
     ] = None
     field_type: Optional[str] = None
     values: Annotated[
-        Union[ValueScheme, List[ValueScheme]],
+        Union[ValueScheme, List[ValueScheme], None],
         BeforeValidator(
             lambda x: [
                 ValueScheme(**i)
@@ -44,7 +49,7 @@ class CustomFieldsValueScheme(BaseModel):
             if isinstance(x, list)
             else x
         ),
-    ]
+    ] = None
 
 
 K = TypeVar("K")
