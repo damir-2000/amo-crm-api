@@ -1,9 +1,10 @@
 from functools import cached_property
-from typing import Any, Generic, Iterable, List, Optional, Type, TypeVar, get_args
+from typing import Any, Dict, Generic, Iterable, List, Optional, Type, TypeVar, get_args
 
 from pydantic import TypeAdapter
 
 from .auth import BaseAuth
+from .filters import Filter
 from .schemes import (
     ComplexCreateResponseScheme,
     ContactScheme,
@@ -32,9 +33,10 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return self._lead_model.model_validate_json(json_data=response.content)
 
-    def get_lead_list(self) -> Iterable[LeadType]:
+    def get_lead_list(self, filters: List[Filter] = []) -> Iterable[LeadType]:
         model = self._lead_model
-        params = {"with": "contacts", "limit": 2, "page": 1}
+        params = {"with": "contacts", "limit": 50, "page": 1}
+        params.update(self._filters_to_params(filters))
         return self._objects_list_generator(
             object_type=model, path="/leads", params=params
         )
@@ -74,9 +76,10 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return self._contact_model.model_validate_json(json_data=response.content)
 
-    def get_contact_list(self) -> Iterable[ContactType]:
+    def get_contact_list(self, filters: List[Filter] = []) -> Iterable[ContactType]:
         model = self._contact_model
-        params = {"with": "leads", "limit": 2, "page": 1}
+        params = {"with": "leads", "limit": 50, "page": 1}
+        params.update(self._filters_to_params(filters))
         return self._objects_list_generator(
             object_type=model, path="/contacts", params=params
         )
@@ -142,6 +145,13 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
 
     def get_users(self) -> Iterable[UserScheme]:
         return self._objects_list_generator(object_type=UserScheme, path="/users")
+
+    @staticmethod
+    def _filters_to_params(filters: List[Filter]) -> Dict[str, Any]:
+        params = dict()
+        for filter_obj in filters:
+            params.update(filter_obj._as_params())
+        return params
 
     @cached_property
     def _lead_model(self) -> type[LeadType]:
