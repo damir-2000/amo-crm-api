@@ -4,6 +4,8 @@ from typing import Literal, Optional, Union
 
 from requests import Response, models, request
 
+from ..exceptions import DoesNotExist, AuthenticationError
+
 
 class BaseAuth(ABC):
     def __init__(self, subdomain: str) -> None:
@@ -22,7 +24,7 @@ class BaseAuth(ABC):
     ) -> Response:
         url = url + path if url else self._url + self._api_v + path
         sleep(0.2)
-        return request(
+        response = request(
             method=method,
             url=url,
             params=params,
@@ -31,6 +33,14 @@ class BaseAuth(ABC):
             auth=self._auth,
             timeout=5,
         )
+        
+        if response.status_code == 404:
+            raise DoesNotExist
+        
+        elif response.status_code == 401:
+            raise AuthenticationError
+        
+        return response
 
     @abstractmethod
     def _auth(self, r: models.PreparedRequest) -> models.PreparedRequest:

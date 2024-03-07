@@ -60,7 +60,7 @@ class ContactScheme(BaseModelForFieldsScheme):
         Field(validation_alias=AliasChoices("leads", "linked_leads_id")),
         Field(exclude=True),
     ] = []
-
+    contact_type: Optional[str] = None
     phone: Annotated[
         List[ValueScheme], MultiTextField(field_code="PHONE"), Field(exclude=True)
     ] = []

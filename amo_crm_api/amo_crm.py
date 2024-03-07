@@ -33,9 +33,9 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return self._lead_model.model_validate_json(json_data=response.content)
 
-    def get_lead_list(self, filters: List[Filter] = []) -> Iterable[LeadType]:
+    def get_lead_list(self, filters: List[Filter] = [], limit: int = 50) -> Iterable[LeadType]:
         model = self._lead_model
-        params = {"with": "contacts", "limit": 50, "page": 1}
+        params = {"with": "contacts", "limit": limit, "page": 1}
         params.update(self._filters_to_params(filters))
         return self._objects_list_generator(
             object_type=model, path="/leads", params=params
@@ -67,7 +67,6 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
             path=f"/leads/{lead_id}",
             json=lead.model_dump(exclude_none=True),
         )
-        print(response.content)
         return UpdateResponseScheme.model_validate_json(json_data=response.content)
 
     def get_contact(self, contact_id: int) -> ContactType:
@@ -76,9 +75,9 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return self._contact_model.model_validate_json(json_data=response.content)
 
-    def get_contact_list(self, filters: List[Filter] = []) -> Iterable[ContactType]:
+    def get_contact_list(self, filters: List[Filter] = [], limit: int = 50) -> Iterable[ContactType]:
         model = self._contact_model
-        params = {"with": "leads", "limit": 50, "page": 1}
+        params = {"with": "leads", "limit": limit, "page": 1}
         params.update(self._filters_to_params(filters))
         return self._objects_list_generator(
             object_type=model, path="/contacts", params=params
