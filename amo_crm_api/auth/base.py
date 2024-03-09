@@ -33,7 +33,7 @@ class BaseAuth(ABC):
             auth=self._auth,
             timeout=5,
         )
-        
+        print(response.status_code)
         if response.status_code == 404:
             raise DoesNotExist
         
