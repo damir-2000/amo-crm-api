@@ -62,9 +62,9 @@ class LeadScheme(BaseModelForFieldsScheme):
     ] = None
     is_deleted: Optional[bool] = None
     custom_fields_values: Annotated[
-        List[CustomFieldsValueScheme],
+        Optional[List[CustomFieldsValueScheme]],
         Field(validation_alias=AliasChoices("custom_fields", "custom_fields_values")),
-    ] = []
+    ] = None
     score: Optional[float] = None
     account_id: Optional[int] = None
     labor_cost: Optional[float] = None
