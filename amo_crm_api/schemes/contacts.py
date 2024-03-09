@@ -48,9 +48,9 @@ class ContactScheme(BaseModelForFieldsScheme):
     is_deleted: Optional[bool] = None
     is_unsorted: Optional[bool] = None
     custom_fields_values: Annotated[
-        List[CustomFieldsValueScheme],
+        Optional[List[CustomFieldsValueScheme]],
         Field(validation_alias=AliasChoices("custom_fields", "custom_fields_values")),
-    ] = []
+    ] = None
     account_id: Optional[int] = None
     embedded: Annotated[
         Optional[ContactEmbeddedScheme], Field(alias="_embedded")
