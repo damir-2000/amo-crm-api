@@ -60,7 +60,7 @@ class EmbeddedScheme(BaseModel, Generic[K]):
         List[K],
         Field(
             validation_alias=AliasChoices(
-                "leads", "contacts", "pipelines", "statuses", "custom_fields", "users"
+                "leads", "contacts", "pipelines", "statuses", "custom_fields", "users", "links"
             )
         ),
     ] = []

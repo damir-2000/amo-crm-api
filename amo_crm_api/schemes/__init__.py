@@ -11,3 +11,4 @@ from .custom_fields import CustomFieldScheme
 from .leads import LeadEmbeddedScheme, LeadScheme
 from .pipelines import PipelineScheme, StatusScheme
 from .users import UserScheme
+from .links import LinkScheme

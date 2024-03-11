@@ -15,6 +15,7 @@ from .schemes import (
     StatusScheme,
     UpdateResponseScheme,
     UserScheme,
+    LinkScheme
 )
 
 LeadType = TypeVar("LeadType", bound=LeadScheme)
@@ -32,6 +33,12 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
             method="GET", path=f"/leads/{lead_id}", params={"with": "contacts"}
         )
         return self._lead_model.model_validate_json(json_data=response.content)
+    
+    def get_lead_links(self, lead_id: int) -> List[LinkScheme]:
+        response = self.request(
+            method="GET", path=f"/leads/{lead_id}/links",
+        )
+        return ListModelScheme[LinkScheme].model_validate_json(response.content).embedded.objects
 
     def get_lead_list(self, filters: List[Filter] = [], limit: int = 50) -> Iterable[LeadType]:
         model = self._lead_model
@@ -74,7 +81,13 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
             method="GET", path=f"/contacts/{contact_id}", params={"with": "leads"}
         )
         return self._contact_model.model_validate_json(json_data=response.content)
-
+    
+    def get_contact_links(self, contact_id: int) -> List[LinkScheme]:
+        response = self.request(
+            method="GET", path=f"/contacts/{contact_id}/links",
+        )
+        return ListModelScheme[LinkScheme].model_validate_json(response.content).embedded.objects
+    
     def get_contact_list(self, filters: List[Filter] = [], limit: int = 50) -> Iterable[ContactType]:
         model = self._contact_model
         params = {"with": "leads", "limit": limit, "page": 1}
