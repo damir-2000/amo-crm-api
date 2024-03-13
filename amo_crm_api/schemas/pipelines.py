@@ -3,7 +3,7 @@ from typing import Annotated, List, Optional
 from pydantic import BaseModel, Field
 
 
-class StatusScheme(BaseModel):
+class StatusSchema(BaseModel):
     id: int
     name: str
     sort: int
@@ -14,11 +14,11 @@ class StatusScheme(BaseModel):
     account_id: int
 
 
-class PipelineEmbeddedScheme(BaseModel):
-    statuses: List[StatusScheme]
+class PipelineEmbeddedSchema(BaseModel):
+    statuses: List[StatusSchema]
 
 
-class PipelineScheme(BaseModel):
+class PipelineSchema(BaseModel):
     id: int
     name: str
     sort: int
@@ -27,9 +27,9 @@ class PipelineScheme(BaseModel):
     is_archive: bool
     account_id: int
     embedded: Annotated[
-        Optional[PipelineEmbeddedScheme], Field(alias="_embedded")
+        Optional[PipelineEmbeddedSchema], Field(alias="_embedded")
     ] = None
-    statuses: List[StatusScheme] = []
+    statuses: List[StatusSchema] = []
 
     def model_post_init(self, __context) -> None:
         if self.embedded and self.embedded.statuses:

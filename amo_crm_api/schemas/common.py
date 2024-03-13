@@ -4,7 +4,7 @@ from typing import Annotated, Generic, List, Optional, TypeVar, Union
 from pydantic import AliasChoices, BaseModel, BeforeValidator, Field
 
 
-class ValueItemScheme(BaseModel):
+class ValueItemSchema(BaseModel):
     file_uuid: str
     version_uuid: str
     file_name: str
@@ -12,8 +12,8 @@ class ValueItemScheme(BaseModel):
     is_deleted: bool
 
 
-class ValueScheme(BaseModel):
-    value: Union[Union[bool, int, float, str], ValueItemScheme, None] = None
+class ValueSchema(BaseModel):
+    value: Union[Union[bool, int, float, str], ValueItemSchema, None] = None
     subtype: Optional[str] = None
     enum_id: Annotated[
         Optional[int],
@@ -24,7 +24,7 @@ class ValueScheme(BaseModel):
     ] = None
 
 
-class CustomFieldsValueScheme(BaseModel):
+class CustomFieldsValueSchema(BaseModel):
     field_id: Annotated[
         Optional[int], Field(validation_alias=AliasChoices("id", "field_id"))
     ] = None
@@ -36,14 +36,14 @@ class CustomFieldsValueScheme(BaseModel):
     ] = None
     field_type: Optional[str] = None
     values: Annotated[
-        Union[ValueScheme, List[ValueScheme], None],
+        Union[ValueSchema, List[ValueSchema], None],
         BeforeValidator(
             lambda x: [
-                ValueScheme(**i)
+                ValueSchema(**i)
                 if isinstance(i, dict)
                 else i
-                if isinstance(i, ValueScheme)
-                else ValueScheme(value=i)
+                if isinstance(i, ValueSchema)
+                else ValueSchema(value=i)
                 for i in x
             ]
             if isinstance(x, list)
@@ -55,7 +55,7 @@ class CustomFieldsValueScheme(BaseModel):
 K = TypeVar("K")
 
 
-class EmbeddedScheme(BaseModel, Generic[K]):
+class EmbeddedSchema(BaseModel, Generic[K]):
     objects: Annotated[
         List[K],
         Field(
@@ -66,17 +66,17 @@ class EmbeddedScheme(BaseModel, Generic[K]):
     ] = []
 
 
-class ListModelScheme(BaseModel, Generic[K]):
+class ListModelSchema(BaseModel, Generic[K]):
     page: Annotated[Optional[int], Field(alias="_page")] = None
-    embedded: Annotated[EmbeddedScheme[K], Field(alias="_embedded")]
+    embedded: Annotated[EmbeddedSchema[K], Field(alias="_embedded")]
 
 
-class UpdateResponseScheme(BaseModel):
+class UpdateResponseSchema(BaseModel):
     id: int
     updated_at: datetime
 
 
-class ComplexCreateResponseScheme(BaseModel):
+class ComplexCreateResponseSchema(BaseModel):
     id: Optional[int] = None
     contact_id: Optional[int] = None
     company_id: Optional[int] = None

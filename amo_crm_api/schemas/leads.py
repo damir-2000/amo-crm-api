@@ -4,27 +4,37 @@ from typing import Annotated, List, Optional
 from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
 from ..utils import set_tz
-from .base_model import BaseModelForFieldsScheme, MultiTextField
-from .common import CustomFieldsValueScheme, ValueScheme
+from .base_model import BaseModelForFieldsSchema
+from .common import CustomFieldsValueSchema
 
 
-class ContactLeadScheme(BaseModel):
+class LeadContactSchema(BaseModel):
     id: int
+    is_main: bool
 
 
-class ContactEmbeddedScheme(BaseModel):
-    tags: List
-    leads: List[ContactLeadScheme]
+class LeadTagSchema(BaseModel):
+    id: int
+    name: str
+    color: Optional[str] = None
+
+
+class LeadEmbeddedSchema(BaseModel):
+    tags: List[LeadTagSchema]
     companies: List
+    contacts: List[LeadContactSchema]
 
 
-class ContactScheme(BaseModelForFieldsScheme):
+class LeadSchema(BaseModelForFieldsSchema):
     id: Optional[int] = None
     name: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    price: Optional[int] = None
     responsible_user_id: Optional[int] = None
     group_id: Optional[int] = None
+    status_id: Optional[int] = None
+    old_status_id: Optional[int] = None
+    pipeline_id: Optional[int] = None
+    loss_reason_id: Optional[int] = None
     created_by: Annotated[
         Optional[int],
         Field(
@@ -44,31 +54,24 @@ class ContactScheme(BaseModelForFieldsScheme):
     updated_at: Annotated[
         Optional[datetime], AfterValidator(set_tz), Field(exclude=True)
     ] = None
-    closest_task_at: Annotated[Optional[datetime], AfterValidator(set_tz)] = None
+    closed_at: Annotated[
+        Optional[datetime], AfterValidator(set_tz), Field(exclude=True)
+    ] = None
+    closest_task_at: Annotated[
+        Optional[datetime], AfterValidator(set_tz), Field(exclude=True)
+    ] = None
     is_deleted: Optional[bool] = None
-    is_unsorted: Optional[bool] = None
     custom_fields_values: Annotated[
-        Optional[List[CustomFieldsValueScheme]],
+        Optional[List[CustomFieldsValueSchema]],
         Field(validation_alias=AliasChoices("custom_fields", "custom_fields_values")),
     ] = None
+    score: Optional[float] = None
     account_id: Optional[int] = None
-    embedded: Annotated[
-        Optional[ContactEmbeddedScheme], Field(alias="_embedded")
-    ] = None
-    leads: Annotated[
-        List[ContactLeadScheme],
-        Field(validation_alias=AliasChoices("leads", "linked_leads_id")),
-        Field(exclude=True),
-    ] = []
-    contact_type: Optional[str] = None
-    phone: Annotated[
-        List[ValueScheme], MultiTextField(field_code="PHONE"), Field(exclude=True)
-    ] = []
-    email: Annotated[
-        List[ValueScheme], MultiTextField(field_code="EMAIL"), Field(exclude=True)
-    ] = []
+    labor_cost: Optional[float] = None
+    embedded: Annotated[Optional[LeadEmbeddedSchema], Field(alias="_embedded")] = None
+    contacts: Annotated[List[LeadContactSchema], Field(exclude=True)] = []
 
     def model_post_init(self, __context) -> None:
-        if self.embedded and self.embedded.leads:
-            self.leads = self.embedded.leads
+        if self.embedded and self.embedded.contacts:
+            self.contacts = self.embedded.contacts
         super().model_post_init(__context)

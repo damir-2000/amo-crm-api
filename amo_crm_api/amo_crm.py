@@ -5,21 +5,21 @@ from pydantic import TypeAdapter
 
 from .auth import BaseAuth
 from .filters import Filter
-from .schemes import (
-    ComplexCreateResponseScheme,
-    ContactScheme,
-    CustomFieldScheme,
-    LeadScheme,
-    ListModelScheme,
-    PipelineScheme,
-    StatusScheme,
-    UpdateResponseScheme,
-    UserScheme,
-    LinkScheme
+from .schemas import (
+    ComplexCreateResponseSchema,
+    ContactSchema,
+    CustomFieldSchema,
+    LeadSchema,
+    ListModelSchema,
+    PipelineSchema,
+    StatusSchema,
+    UpdateResponseSchema,
+    UserSchema,
+    LinkSchema
 )
 
-LeadType = TypeVar("LeadType", bound=LeadScheme)
-ContactType = TypeVar("ContactType", bound=ContactScheme)
+LeadType = TypeVar("LeadType", bound=LeadSchema)
+ContactType = TypeVar("ContactType", bound=ContactSchema)
 
 
 class AmoCRMApi(Generic[LeadType, ContactType]):
@@ -34,11 +34,11 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return self._lead_model.model_validate_json(json_data=response.content)
     
-    def get_lead_links(self, lead_id: int) -> List[LinkScheme]:
+    def get_lead_links(self, lead_id: int) -> List[LinkSchema]:
         response = self.request(
             method="GET", path=f"/leads/{lead_id}/links",
         )
-        return ListModelScheme[LinkScheme].model_validate_json(response.content).embedded.objects
+        return ListModelSchema[LinkSchema].model_validate_json(response.content).embedded.objects
 
     def get_lead_list(self, filters: List[Filter] = [], limit: int = 50) -> Iterable[LeadType]:
         model = self._lead_model
@@ -56,25 +56,25 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
 
     def create_complex_lead(
         self, lead: LeadType, contact: ContactType
-    ) -> ComplexCreateResponseScheme:
+    ) -> ComplexCreateResponseSchema:
         lead_data = lead.model_dump(exclude_none=True)
         contact_data = contact.model_dump(exclude_none=True)
         lead_data["_embedded"] = {}
         lead_data["_embedded"]["contacts"] = [contact_data]
         response = self.request(method="POST", path="/leads/complex", json=[lead_data])
 
-        return TypeAdapter(List[ComplexCreateResponseScheme]).validate_json(
+        return TypeAdapter(List[ComplexCreateResponseSchema]).validate_json(
             response.content
         )[0]
 
-    def update_lead(self, lead: LeadType) -> UpdateResponseScheme:
+    def update_lead(self, lead: LeadType) -> UpdateResponseSchema:
         lead_id = lead.id
         response = self.request(
             method="PATCH",
             path=f"/leads/{lead_id}",
             json=lead.model_dump(exclude_none=True),
         )
-        return UpdateResponseScheme.model_validate_json(json_data=response.content)
+        return UpdateResponseSchema.model_validate_json(json_data=response.content)
 
     def get_contact(self, contact_id: int) -> ContactType:
         response = self.request(
@@ -82,11 +82,11 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return self._contact_model.model_validate_json(json_data=response.content)
     
-    def get_contact_links(self, contact_id: int) -> List[LinkScheme]:
+    def get_contact_links(self, contact_id: int) -> List[LinkSchema]:
         response = self.request(
             method="GET", path=f"/contacts/{contact_id}/links",
         )
-        return ListModelScheme[LinkScheme].model_validate_json(response.content).embedded.objects
+        return ListModelSchema[LinkSchema].model_validate_json(response.content).embedded.objects
     
     def get_contact_list(self, filters: List[Filter] = [], limit: int = 50) -> Iterable[ContactType]:
         model = self._contact_model
@@ -104,59 +104,59 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         )
         return response.content
 
-    def update_contact(self, contact: ContactType) -> UpdateResponseScheme:
+    def update_contact(self, contact: ContactType) -> UpdateResponseSchema:
         contact_id = contact.id
         response = self.request(
             method="PATCH",
             path=f"/contacts/{contact_id}",
             json=contact.model_dump(exclude_none=True),
         )
-        return UpdateResponseScheme.model_validate_json(json_data=response.content)
+        return UpdateResponseSchema.model_validate_json(json_data=response.content)
 
-    def get_pipeline(self, pipeline_id: int) -> PipelineScheme:
+    def get_pipeline(self, pipeline_id: int) -> PipelineSchema:
         response = self.request(method="GET", path=f"/leads/pipelines/{pipeline_id}")
-        return PipelineScheme.model_validate_json(response.content)
+        return PipelineSchema.model_validate_json(response.content)
 
-    def get_pipeline_list(self) -> List[PipelineScheme]:
+    def get_pipeline_list(self) -> List[PipelineSchema]:
         response = self.request(method="GET", path="/leads/pipelines")
         return (
-            ListModelScheme[PipelineScheme]
+            ListModelSchema[PipelineSchema]
             .model_validate_json(json_data=response.content)
             .embedded.objects
         )
 
-    def get_pipeline_status(self, pipeline_id: int, status_id: int) -> StatusScheme:
+    def get_pipeline_status(self, pipeline_id: int, status_id: int) -> StatusSchema:
         response = self.request(
             method="GET", path=f"/leads/pipelines/{pipeline_id}/statuses/{status_id}"
         )
-        return StatusScheme.model_validate_json(response.content)
+        return StatusSchema.model_validate_json(response.content)
 
-    def get_pipeline_status_list(self, pipeline_id: int) -> List[StatusScheme]:
+    def get_pipeline_status_list(self, pipeline_id: int) -> List[StatusSchema]:
         response = self.request(
             method="GET", path=f"/leads/pipelines/{pipeline_id}/statuses"
         )
         return (
-            ListModelScheme[StatusScheme]
+            ListModelSchema[StatusSchema]
             .model_validate_json(response.content)
             .embedded.objects
         )
 
-    def get_custom_field(self, field_id: int) -> CustomFieldScheme:
+    def get_custom_field(self, field_id: int) -> CustomFieldSchema:
         response = self.request(method="GET", path=f"/leads/custom_fields/{field_id}")
-        return CustomFieldScheme.model_validate_json(response.content)
+        return CustomFieldSchema.model_validate_json(response.content)
 
-    def get_custom_field_list(self) -> Iterable[CustomFieldScheme]:
+    def get_custom_field_list(self) -> Iterable[CustomFieldSchema]:
         # params = {"limit": 2, "page": 1}
         return self._objects_list_generator(
-            object_type=CustomFieldScheme, path="/leads/custom_fields"
+            object_type=CustomFieldSchema, path="/leads/custom_fields"
         )
 
-    def get_user(self, user_id: int) -> UserScheme:
+    def get_user(self, user_id: int) -> UserSchema:
         response = self.request(method="GET", path=f"/users/{user_id}")
-        return UserScheme.model_validate_json(response.content)
+        return UserSchema.model_validate_json(response.content)
 
-    def get_users(self) -> Iterable[UserScheme]:
-        return self._objects_list_generator(object_type=UserScheme, path="/users")
+    def get_users(self) -> Iterable[UserSchema]:
+        return self._objects_list_generator(object_type=UserSchema, path="/users")
 
     @staticmethod
     def _filters_to_params(filters: List[Filter]) -> Dict[str, Any]:
@@ -168,7 +168,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
     @cached_property
     def _lead_model(self) -> type[LeadType]:
         args = get_args(self.__orig_class__)  # type: ignore
-        base_type: type[LeadType] = LeadScheme  # type: ignore
+        base_type: type[LeadType] = LeadSchema  # type: ignore
         for arg in args:
             if issubclass(arg, base_type):
                 return arg
@@ -177,7 +177,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
     @cached_property
     def _contact_model(self) -> Type[ContactType]:
         args = get_args(self.__orig_class__)  # type: ignore
-        base_type: Type[ContactType] = ContactScheme  # type: ignore
+        base_type: Type[ContactType] = ContactSchema  # type: ignore
         for arg in args:
             if issubclass(arg, base_type):
                 return arg
@@ -196,7 +196,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
             if response.status_code != 200:
                 break
             item_list = (
-                ListModelScheme[object_type]  # type: ignore
+                ListModelSchema[object_type]  # type: ignore
                 .model_validate_json(response.content)
                 .embedded.objects
             )
