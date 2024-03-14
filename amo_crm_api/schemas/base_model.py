@@ -170,8 +170,8 @@ class DateField(CustomFieldType):
     def on_get(self, values: Optional[List[ValueSchema]]) -> Optional[date]:
         if values:
             value = values[0].value
-            if isinstance(value, int):
-                return datetime.fromtimestamp(value, tz=t_zone).date()
+            if isinstance(value, int) or (isinstance(value, str) and value.isdigit()):
+                return datetime.fromtimestamp(int(value), tz=t_zone).date()
             if isinstance(value, str):
                 return datetime.strptime(value, "%d.%m.%Y").date()
         return None
@@ -195,11 +195,11 @@ class DateTimeField(CustomFieldType):
 
     valid_type = ["date_time"]
 
-    def on_get(self, values: Optional[List[ValueSchema]]) -> Optional[date]:
+    def on_get(self, values: Optional[List[ValueSchema]]) -> Optional[datetime]:
         if values:
             value = values[0].value
-            if isinstance(value, int):
-                return datetime.fromtimestamp(value, tz=t_zone)
+            if isinstance(value, int) or (isinstance(value, str) and value.isdigit()):
+                return datetime.fromtimestamp(int(value), tz=t_zone)
 
         return None
 
