@@ -171,7 +171,7 @@ class DateField(CustomFieldType):
         if values:
             value = values[0].value
             if isinstance(value, int) or (isinstance(value, str) and value.isdigit()):
-                return datetime.fromtimestamp(int(value), tz=t_zone).date()
+                return datetime.fromtimestamp(int(value)).date()
             if isinstance(value, str):
                 return datetime.strptime(value, "%d.%m.%Y").date()
         return None
@@ -199,7 +199,7 @@ class DateTimeField(CustomFieldType):
         if values:
             value = values[0].value
             if isinstance(value, int) or (isinstance(value, str) and value.isdigit()):
-                return datetime.fromtimestamp(int(value), tz=t_zone)
+                return datetime.fromtimestamp(int(value))
 
         return None
 
