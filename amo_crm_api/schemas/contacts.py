@@ -43,7 +43,7 @@ class ContactSchema(BaseModelForFieldsSchema):
     updated_at: Annotated[
         Optional[datetime], Field(exclude=True)
     ] = None
-    closest_task_at: Annotated[Optional[datetime], AfterValidator(set_tz)] = None
+    closest_task_at: Annotated[Optional[datetime], Field(exclude=True)] = None
     is_deleted: Optional[bool] = None
     is_unsorted: Optional[bool] = None
     custom_fields_values: Annotated[
