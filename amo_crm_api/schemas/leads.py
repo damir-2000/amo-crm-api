@@ -1,9 +1,8 @@
 from datetime import datetime
 from typing import Annotated, List, Optional
 
-from pydantic import AfterValidator, AliasChoices, BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 
-from ..utils import set_tz
 from .base_model import BaseModelForFieldsSchema
 from .common import CustomFieldsValueSchema
 
@@ -49,16 +48,16 @@ class LeadSchema(BaseModelForFieldsSchema):
         ),
     ] = None
     created_at: Annotated[
-        Optional[datetime], AfterValidator(set_tz), Field(exclude=True)
+        Optional[datetime], Field(exclude=True)
     ] = None
     updated_at: Annotated[
-        Optional[datetime], AfterValidator(set_tz), Field(exclude=True)
+        Optional[datetime], Field(exclude=True)
     ] = None
     closed_at: Annotated[
-        Optional[datetime], AfterValidator(set_tz), Field(exclude=True)
+        Optional[datetime], Field(exclude=True)
     ] = None
     closest_task_at: Annotated[
-        Optional[datetime], AfterValidator(set_tz), Field(exclude=True)
+        Optional[datetime], Field(exclude=True)
     ] = None
     is_deleted: Optional[bool] = None
     custom_fields_values: Annotated[

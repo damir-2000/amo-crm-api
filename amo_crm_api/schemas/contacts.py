@@ -3,7 +3,6 @@ from typing import Annotated, List, Optional
 
 from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
-from ..utils import set_tz
 from .base_model import BaseModelForFieldsSchema, MultiTextField
 from .common import CustomFieldsValueSchema, ValueSchema
 
@@ -39,10 +38,10 @@ class ContactSchema(BaseModelForFieldsSchema):
         ),
     ] = None
     created_at: Annotated[
-        Optional[datetime], AfterValidator(set_tz), Field(exclude=True)
+        Optional[datetime], Field(exclude=True)
     ] = None
     updated_at: Annotated[
-        Optional[datetime], AfterValidator(set_tz), Field(exclude=True)
+        Optional[datetime], Field(exclude=True)
     ] = None
     closest_task_at: Annotated[Optional[datetime], AfterValidator(set_tz)] = None
     is_deleted: Optional[bool] = None
