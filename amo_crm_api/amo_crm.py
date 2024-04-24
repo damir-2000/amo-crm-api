@@ -15,7 +15,9 @@ from .schemas import (
     StatusSchema,
     UpdateResponseSchema,
     UserSchema,
-    LinkSchema
+    LinkSchema,
+    LeadLossReasonSchema,
+    TagSchema,
 )
 
 LeadType = TypeVar("LeadType", bound=LeadSchema)
@@ -30,19 +32,28 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
 
     def get_lead(self, lead_id: int) -> LeadType:
         response = self.request(
-            method="GET", path=f"/leads/{lead_id}", params={"with": "contacts"}
+            method="GET",
+            path=f"/leads/{lead_id}",
+            params={"with": "contacts,loss_reason"},
         )
         return self._lead_model.model_validate_json(json_data=response.content)
-    
+
     def get_lead_links(self, lead_id: int) -> List[LinkSchema]:
         response = self.request(
-            method="GET", path=f"/leads/{lead_id}/links",
+            method="GET",
+            path=f"/leads/{lead_id}/links",
         )
-        return ListModelSchema[LinkSchema].model_validate_json(response.content).embedded.objects
+        return (
+            ListModelSchema[LinkSchema]
+            .model_validate_json(response.content)
+            .embedded.objects
+        )
 
-    def get_lead_list(self, filters: List[Filter] = [], limit: int = 50) -> Iterable[LeadType]:
+    def get_lead_list(
+        self, filters: List[Filter] = [], limit: int = 50
+    ) -> Iterable[LeadType]:
         model = self._lead_model
-        params = {"with": "contacts", "limit": limit, "page": 1}
+        params = {"with": "contacts,loss_reason", "limit": limit, "page": 1}
         params.update(self._filters_to_params(filters))
         return self._objects_list_generator(
             object_type=model, path="/leads", params=params
@@ -72,7 +83,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         response = self.request(
             method="PATCH",
             path=f"/leads/{lead_id}",
-            json=lead.model_dump(exclude_none=True),
+            json=lead.model_dump(exclude_unset=True, by_alias=True),
         )
         return UpdateResponseSchema.model_validate_json(json_data=response.content)
 
@@ -81,14 +92,21 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
             method="GET", path=f"/contacts/{contact_id}", params={"with": "leads"}
         )
         return self._contact_model.model_validate_json(json_data=response.content)
-    
+
     def get_contact_links(self, contact_id: int) -> List[LinkSchema]:
         response = self.request(
-            method="GET", path=f"/contacts/{contact_id}/links",
+            method="GET",
+            path=f"/contacts/{contact_id}/links",
         )
-        return ListModelSchema[LinkSchema].model_validate_json(response.content).embedded.objects
-    
-    def get_contact_list(self, filters: List[Filter] = [], limit: int = 50) -> Iterable[ContactType]:
+        return (
+            ListModelSchema[LinkSchema]
+            .model_validate_json(response.content)
+            .embedded.objects
+        )
+
+    def get_contact_list(
+        self, filters: List[Filter] = [], limit: int = 50
+    ) -> Iterable[ContactType]:
         model = self._contact_model
         params = {"with": "leads", "limit": limit, "page": 1}
         params.update(self._filters_to_params(filters))
@@ -109,7 +127,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         response = self.request(
             method="PATCH",
             path=f"/contacts/{contact_id}",
-            json=contact.model_dump(exclude_none=True),
+            json=contact.model_dump(exclude_none=True, by_alias=True),
         )
         return UpdateResponseSchema.model_validate_json(json_data=response.content)
 
@@ -157,6 +175,23 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
 
     def get_users(self) -> Iterable[UserSchema]:
         return self._objects_list_generator(object_type=UserSchema, path="/users")
+
+    def get_loss_reason(self, loss_reason_id: int) -> LeadLossReasonSchema:
+        response = self.request(
+            method="GET", path=f"/leads/loss_reasons/{loss_reason_id}"
+        )
+        return LeadLossReasonSchema.model_validate_json(response.content)
+
+    def get_loss_reason_list(self) -> List[LeadLossReasonSchema]:
+        response = self.request(method="GET", path="/leads/loss_reasons")
+        return (
+            ListModelSchema[LeadLossReasonSchema]
+            .model_validate_json(response.content)
+            .embedded.objects
+        )
+
+    def get_lead_tags(self) -> Iterable[TagSchema]:
+        return self._objects_list_generator(object_type=TagSchema, path="/leads/tags")
 
     @staticmethod
     def _filters_to_params(filters: List[Filter]) -> Dict[str, Any]:

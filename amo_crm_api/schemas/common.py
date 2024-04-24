@@ -38,16 +38,18 @@ class CustomFieldsValueSchema(BaseModel):
     values: Annotated[
         Union[ValueSchema, List[ValueSchema], None],
         BeforeValidator(
-            lambda x: [
-                ValueSchema(**i)
-                if isinstance(i, dict)
-                else i
-                if isinstance(i, ValueSchema)
-                else ValueSchema(value=i)
-                for i in x
-            ]
-            if isinstance(x, list)
-            else x
+            lambda x: (
+                [
+                    (
+                        ValueSchema(**i)
+                        if isinstance(i, dict)
+                        else i if isinstance(i, ValueSchema) else ValueSchema(value=i)
+                    )
+                    for i in x
+                ]
+                if isinstance(x, list)
+                else x
+            )
         ),
     ] = None
 
@@ -60,7 +62,15 @@ class EmbeddedSchema(BaseModel, Generic[K]):
         List[K],
         Field(
             validation_alias=AliasChoices(
-                "leads", "contacts", "pipelines", "statuses", "custom_fields", "users", "links"
+                "leads",
+                "contacts",
+                "pipelines",
+                "statuses",
+                "custom_fields",
+                "users",
+                "links",
+                "loss_reasons",
+                "tags"
             )
         ),
     ] = []
@@ -81,3 +91,9 @@ class ComplexCreateResponseSchema(BaseModel):
     contact_id: Optional[int] = None
     company_id: Optional[int] = None
     merged: Optional[bool] = None
+
+
+class TagSchema(BaseModel):
+    id: int
+    name: Optional[str] = None
+    color: Annotated[Optional[str], Field(exclude=True)] = None

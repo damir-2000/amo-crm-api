@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Annotated, List, Optional
 
-from pydantic import AfterValidator, AliasChoices, BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 
 from .base_model import BaseModelForFieldsSchema, MultiTextField
-from .common import CustomFieldsValueSchema, ValueSchema
+from .common import CustomFieldsValueSchema, ValueSchema, TagSchema
 
 
 class ContactLeadSchema(BaseModel):
@@ -12,9 +12,9 @@ class ContactLeadSchema(BaseModel):
 
 
 class ContactEmbeddedSchema(BaseModel):
-    tags: List
-    leads: List[ContactLeadSchema]
-    companies: List
+    tags: List[TagSchema] = []
+    leads: List[ContactLeadSchema] = []
+    companies: List = []
 
 
 class ContactSchema(BaseModelForFieldsSchema):
@@ -52,13 +52,15 @@ class ContactSchema(BaseModelForFieldsSchema):
     ] = None
     account_id: Optional[int] = None
     embedded: Annotated[
-        Optional[ContactEmbeddedSchema], Field(alias="_embedded")
+        Optional[ContactEmbeddedSchema],
+        Field(alias="_embedded", serialization_alias="_embedded"),
     ] = None
     leads: Annotated[
         List[ContactLeadSchema],
         Field(validation_alias=AliasChoices("leads", "linked_leads_id")),
         Field(exclude=True),
     ] = []
+    tags: Annotated[List[TagSchema], Field(exclude=True)] = []
     contact_type: Optional[str] = None
     phone: Annotated[
         List[ValueSchema], MultiTextField(field_code="PHONE"), Field(exclude=True)
@@ -70,4 +72,5 @@ class ContactSchema(BaseModelForFieldsSchema):
     def model_post_init(self, __context) -> None:
         if self.embedded and self.embedded.leads:
             self.leads = self.embedded.leads
+            self.tags = self.embedded.tags
         super().model_post_init(__context)

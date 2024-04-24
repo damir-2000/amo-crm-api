@@ -4,7 +4,7 @@ from typing import Annotated, List, Optional
 from pydantic import AliasChoices, BaseModel, Field
 
 from .base_model import BaseModelForFieldsSchema
-from .common import CustomFieldsValueSchema
+from .common import CustomFieldsValueSchema, TagSchema
 
 
 class LeadContactSchema(BaseModel):
@@ -12,16 +12,23 @@ class LeadContactSchema(BaseModel):
     is_main: bool
 
 
-class LeadTagSchema(BaseModel):
+class LeadLossReasonSchema(BaseModel):
     id: int
     name: str
-    color: Optional[str] = None
+    sort: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeadCompanySchema(BaseModel):
+    id: int
 
 
 class LeadEmbeddedSchema(BaseModel):
-    tags: List[LeadTagSchema]
-    companies: List
-    contacts: List[LeadContactSchema]
+    tags: List[TagSchema] = []
+    companies: List[LeadCompanySchema] = []
+    contacts: List[LeadContactSchema] = []
+    loss_reason: List[LeadLossReasonSchema] = []
 
 
 class LeadSchema(BaseModelForFieldsSchema):
@@ -47,18 +54,10 @@ class LeadSchema(BaseModelForFieldsSchema):
             exclude=True,
         ),
     ] = None
-    created_at: Annotated[
-        Optional[datetime], Field(exclude=True)
-    ] = None
-    updated_at: Annotated[
-        Optional[datetime], Field(exclude=True)
-    ] = None
-    closed_at: Annotated[
-        Optional[datetime], Field(exclude=True)
-    ] = None
-    closest_task_at: Annotated[
-        Optional[datetime], Field(exclude=True)
-    ] = None
+    created_at: Annotated[Optional[datetime], Field(exclude=True)] = None
+    updated_at: Annotated[Optional[datetime], Field(exclude=True)] = None
+    closed_at: Annotated[Optional[datetime], Field(exclude=True)] = None
+    closest_task_at: Annotated[Optional[datetime], Field(exclude=True)] = None
     is_deleted: Optional[bool] = None
     custom_fields_values: Annotated[
         Optional[List[CustomFieldsValueSchema]],
@@ -67,10 +66,17 @@ class LeadSchema(BaseModelForFieldsSchema):
     score: Optional[float] = None
     account_id: Optional[int] = None
     labor_cost: Optional[float] = None
-    embedded: Annotated[Optional[LeadEmbeddedSchema], Field(alias="_embedded")] = None
+    embedded: Annotated[
+        Optional[LeadEmbeddedSchema],
+        Field(alias="_embedded", serialization_alias="_embedded"),
+    ] = None
     contacts: Annotated[List[LeadContactSchema], Field(exclude=True)] = []
+    tags: Annotated[List[TagSchema], Field(exclude=True)] = []
+    loss_reason: Annotated[List[LeadLossReasonSchema], Field(exclude=True)] = []
 
     def model_post_init(self, __context) -> None:
-        if self.embedded and self.embedded.contacts:
+        if self.embedded:
             self.contacts = self.embedded.contacts
+            self.loss_reason = self.embedded.loss_reason
+            self.tags = self.embedded.tags
         super().model_post_init(__context)

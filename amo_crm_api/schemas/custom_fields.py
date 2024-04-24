@@ -23,7 +23,7 @@ class CustomFieldSchema(BaseModel):
     code: Optional[str]
     sort: int
     is_api_only: bool
-    enums: Optional[List[EnumSchema]]
+    enums: List[EnumSchema] = []
     group_id: Optional[str]
     required_statuses: List[RequiredStatusSchema]
     is_deletable: bool

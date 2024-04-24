@@ -47,6 +47,10 @@ class TextField(CustomFieldType):
         return None
 
     def on_set(self, values: str) -> CustomFieldsValueSchema:
+        
+        if values is None:
+            values = ""
+            
         return CustomFieldsValueSchema(
             field_id=self.field_id,
             field_code=self.field_code,
@@ -110,9 +114,18 @@ class SelectField(CustomFieldType):
             return value
         return None
 
-    def on_set(self, values: ValueSchema) -> CustomFieldsValueSchema:
+    def on_set(self, values: ValueSchema) -> Optional[CustomFieldsValueSchema]:
+        assign_values = None
+        if values is not None:
+            if self.enums:
+                if self.enums.get(values):
+                    assign_values = [self.enums[values]]
+                else:
+                    raise ValueError(values)
+            else:
+                assign_values = [values]
         return CustomFieldsValueSchema(
-            field_id=self.field_id, field_code=self.field_code, values=[values]
+            field_id=self.field_id, field_code=self.field_code, values=assign_values
         )
 
 
@@ -155,10 +168,13 @@ class NumericField(CustomFieldType):
         return None
 
     def on_set(self, values: float) -> CustomFieldsValueSchema:
+        assign_value = None
+        if values is not None:
+            assign_value = [ValueSchema(value=str(values))]
         return CustomFieldsValueSchema(
             field_id=self.field_id,
             field_code=self.field_code,
-            values=[ValueSchema(value=str(values))],
+            values=assign_value,
         )
 
 
@@ -177,16 +193,18 @@ class DateField(CustomFieldType):
         return None
 
     def on_set(self, values: date) -> CustomFieldsValueSchema:
-        return CustomFieldsValueSchema(
-            field_id=self.field_id,
-            field_code=self.field_code,
-            values=[
+        assign_value = None
+        if values is not None:
+            assign_value = [
                 ValueSchema(
                     value=int(
                         datetime.combine(date=values, time=time(0, 0, 0, 0)).timestamp()
                     )
                 )
-            ],
+            ]
+
+        return CustomFieldsValueSchema(
+            field_id=self.field_id, field_code=self.field_code, values=assign_value
         )
 
 
@@ -204,10 +222,13 @@ class DateTimeField(CustomFieldType):
         return None
 
     def on_set(self, values: datetime) -> CustomFieldsValueSchema:
+        assign_value = None
+        if values is not None:
+            assign_value = [ValueSchema(value=int(values.timestamp()))]
         return CustomFieldsValueSchema(
             field_id=self.field_id,
             field_code=self.field_code,
-            values=[ValueSchema(value=int(values.timestamp()))],
+            values=assign_value,
         )
 
 
@@ -275,9 +296,9 @@ class BaseModelForFieldsSchema(BaseModel):
             if custom_types.field_code is not None:
                 field_ids.append(custom_types.field_code)
 
-            if values:
-                field_with_value = custom_types.on_set(values=values)
-                new_custom_fields_values.append(field_with_value)
+            # if values is not None:
+            field_with_value = custom_types.on_set(values=values)
+            new_custom_fields_values.append(field_with_value)
 
         for custom_field in custom_fields_values:
             if (

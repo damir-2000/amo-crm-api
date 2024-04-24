@@ -4,7 +4,13 @@ from typing import Literal, Optional, Union
 
 from requests import Response, models, request
 
-from ..exceptions import DoesNotExist, AuthenticationError
+from ..exceptions import (
+    DoesNotExist,
+    AuthenticationError,
+    LimitExceededError,
+    AccountBlockedError,
+    ValidationError,
+)
 
 
 class BaseAuth(ABC):
@@ -33,13 +39,21 @@ class BaseAuth(ABC):
             auth=self._auth,
             timeout=5,
         )
-        print(response.status_code)
         if response.status_code == 404:
             raise DoesNotExist
-        
+
         elif response.status_code == 401:
             raise AuthenticationError
-        
+
+        elif response.status_code == 400:
+            raise ValidationError(response.json())
+
+        elif response.status_code == 403:
+            raise AccountBlockedError
+
+        elif response.status_code == 429:
+            raise LimitExceededError
+
         return response
 
     @abstractmethod
