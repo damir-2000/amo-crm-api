@@ -242,7 +242,7 @@ class BaseModelForFieldsSchema(BaseModel):
             all_annotations.update(inspect.get_annotations(parent_cls))
         return all_annotations
 
-    @cached_property
+    # @cached_property
     def _custom_fields_type(self) -> dict:
         field_types = {}
 
@@ -289,7 +289,7 @@ class BaseModelForFieldsSchema(BaseModel):
         new_custom_fields_values = []
         field_ids: List[Union[int, str]] = []
 
-        for key, custom_types in self._custom_fields_type.items():
+        for key, custom_types in self._custom_fields_type().items():
             values = self.__getattribute__(key)
             if custom_types.field_id is not None:
                 field_ids.append(custom_types.field_id)
