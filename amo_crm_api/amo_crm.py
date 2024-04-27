@@ -61,15 +61,15 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
 
     def create_lead(self, lead: LeadType) -> LeadType:
         response = self.request(
-            method="POST", path="/leads", json=[lead.model_dump(exclude_none=True)]
+            method="POST", path="/leads", json=[lead.model_dump(exclude_unset=True)]
         )
         return response.content
 
     def create_complex_lead(
         self, lead: LeadType, contact: ContactType
     ) -> ComplexCreateResponseSchema:
-        lead_data = lead.model_dump(exclude_none=True)
-        contact_data = contact.model_dump(exclude_none=True)
+        lead_data = lead.model_dump(exclude_unset=True)
+        contact_data = contact.model_dump(exclude_unset=True)
         lead_data["_embedded"] = {}
         lead_data["_embedded"]["contacts"] = [contact_data]
         response = self.request(method="POST", path="/leads/complex", json=[lead_data])
@@ -118,7 +118,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         response = self.request(
             method="POST",
             path="/contacts",
-            json=[contact.model_dump(exclude_none=True)],
+            json=[contact.model_dump(exclude_unset=True)],
         )
         return response.content
 
