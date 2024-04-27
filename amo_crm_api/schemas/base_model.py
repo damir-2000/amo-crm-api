@@ -264,7 +264,7 @@ class BaseModelForFieldsSchema(BaseModel):
                 if custom_field.field_code:
                     custom_fields[custom_field.field_code] = custom_field
 
-            for key, custom_types in self._custom_fields_type.items():
+            for key, custom_types in self._custom_fields_type().items():
                 if custom_types.field_id:
                     field = custom_fields.get(custom_types.field_id)
                 elif custom_types.field_code:
