@@ -63,11 +63,11 @@ class ContactSchema(BaseModelForFieldsSchema):
     tags: Annotated[List[TagSchema], Field(exclude=True)] = []
     contact_type: Optional[str] = None
     phone: Annotated[
-        List[ValueSchema], MultiTextField(field_code="PHONE"), Field(exclude=True)
-    ] = []
+        Optional[List[ValueSchema]], MultiTextField(field_code="PHONE"), Field(exclude=True)
+    ] = None
     email: Annotated[
-        List[ValueSchema], MultiTextField(field_code="EMAIL"), Field(exclude=True)
-    ] = []
+        Optional[List[ValueSchema]], MultiTextField(field_code="EMAIL"), Field(exclude=True)
+    ] = None
 
     def model_post_init(self, __context) -> None:
         if self.embedded and self.embedded.leads:

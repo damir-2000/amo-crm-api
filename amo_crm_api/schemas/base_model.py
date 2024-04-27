@@ -146,8 +146,11 @@ class MultiSelectField(CustomFieldType):
         return None
 
     def on_set(self, values: List[ValueSchema]) -> CustomFieldsValueSchema:
+        assign_values = None
+        if values is not None:
+            assign_values = values
         return CustomFieldsValueSchema(
-            field_id=self.field_id, field_code=self.field_code, values=values
+            field_id=self.field_id, field_code=self.field_code, values=assign_values
         )
 
 
