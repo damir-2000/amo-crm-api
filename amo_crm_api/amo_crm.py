@@ -127,7 +127,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
         response = self.request(
             method="PATCH",
             path=f"/contacts/{contact_id}",
-            json=contact.model_dump(exclude_none=True, by_alias=True),
+            json=contact.model_dump(exclude_unset=True, by_alias=True),
         )
         return UpdateResponseSchema.model_validate_json(json_data=response.content)
 
@@ -227,7 +227,7 @@ class AmoCRMApi(Generic[LeadType, ContactType]):
 
         while True:
             response = self.request(method="GET", path=path, params=params)
-
+            
             if response.status_code != 200:
                 break
             item_list = (
