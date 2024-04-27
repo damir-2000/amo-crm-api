@@ -233,7 +233,7 @@ class DateTimeField(CustomFieldType):
 
 
 class BaseModelForFieldsSchema(BaseModel):
-    custom_fields_values: Optional[List[CustomFieldsValueSchema]] = None
+    custom_fields_values: List[CustomFieldsValueSchema] = []
 
     # @cached_property
     def _all_annotations(self) -> dict:
@@ -278,7 +278,7 @@ class BaseModelForFieldsSchema(BaseModel):
                         raise TypeError
                     value = custom_types.on_get(values=field.values)
                     self.__setattr__(key, value)
-
+    
     @field_serializer("custom_fields_values")
     def serialize_courses_in_order(
         self, custom_fields_values: Optional[List[CustomFieldsValueSchema]]
