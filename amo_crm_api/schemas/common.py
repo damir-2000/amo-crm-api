@@ -20,7 +20,7 @@ class ValueSchema(BaseModel):
         Field(validation_alias=AliasChoices("enum_id", "enum")),
     ] = None
     enum_code: Annotated[
-        Optional[str], Field(validation_alias=AliasChoices("enum_code", "code"))
+        Optional[str], Field(validation_alias=AliasChoices("enum_code", "code"), exclude=True)
     ] = None
 
 
