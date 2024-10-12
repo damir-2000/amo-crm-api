@@ -236,7 +236,7 @@ class DateTimeField(CustomFieldType):
 
 
 class BaseModelForFieldsSchema(BaseModel):
-    custom_fields_values: List[CustomFieldsValueSchema] = []
+    custom_fields_values: Optional[List[CustomFieldsValueSchema]] = None
 
     # @cached_property
     def _all_annotations(self) -> dict:

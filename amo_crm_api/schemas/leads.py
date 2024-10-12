@@ -60,9 +60,9 @@ class LeadSchema(BaseModelForFieldsSchema):
     closest_task_at: Annotated[Optional[datetime], Field(exclude=True)] = None
     is_deleted: Optional[bool] = None
     custom_fields_values: Annotated[
-        List[CustomFieldsValueSchema],
+        Optional[List[CustomFieldsValueSchema]],
         Field(validation_alias=AliasChoices("custom_fields", "custom_fields_values")),
-    ] = []
+    ] = None
     score: Optional[float] = None
     account_id: Optional[int] = None
     labor_cost: Optional[float] = None
