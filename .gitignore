@@ -1,6 +1,7 @@
 #python
 virt
 venv*
+pip
 .vscode
 .idea
 .mypy_cache
