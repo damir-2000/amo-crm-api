@@ -43,7 +43,7 @@ class BaseAuth(ABC):
             )
         except exceptions.ReadTimeout:
             if tried <= 5:
-                self.request(
+                return self.request(
                     method=method,
                     path=path,
                     url=url,
